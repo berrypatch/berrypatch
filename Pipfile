@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pytest = "*"
+black = "*"
+berrypatch = {editable = true,path = "."}
+
+[packages]
+jinja2 = "*"
+click = "*"
+coloredlogs = "*"
+
+[requires]
+python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
