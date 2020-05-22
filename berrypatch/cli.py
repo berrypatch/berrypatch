@@ -7,31 +7,57 @@ from . import core
 from . import errors
 
 
-RESOLVER = core.Resolver()
+CORE = core.Core()
+
+
+def print_error(msg):
+    click.echo(click.style("ERR!", fg="red") + " " + msg)
+
+
+def print_progress(msg):
+    click.echo(click.style("--->", fg="green") + " " + msg)
 
 
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 @click.pass_context
 def cli(ctx, debug):
-    coloredlogs.install(level="DEBUG")
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
+    coloredlogs.install(level="DEBUG" if debug else "INFO")
 
 
 @click.command()
 @click.argument("name")
+@click.option("--autostart/--no-autostart", default=True)
 @click.pass_context
-def install(ctx, name):
+def install(ctx, name, autostart):
     """Installs an app"""
-    click.echo(f"Installing {name} ...")
-    try:
-        app = RESOLVER.resolve_app(name)
-    except errors.AppNotFound:
-        click.echo(f'An app named "{name}" was not found')
+    app = CORE.get_app(name)
+    print_progress(f"Installing {name}")
+    if not app:
+        print_error(f'An app named "{name}" was not found')
+        raise click.Abort()
+
+    variables = {}
+    print_progress(f"Configuring {name} ...")
+    for variable_config in app.iter_variable_definitions():
+        name, description, default_value, validator = variable_config
+        click.echo(f'{name}: {description or "No description"}')
+        value = click.prompt("Enter value", default=default_value)
+        variables[name] = value
+
+    click.echo(f"Ready to install {name}.")
+    for k, v in variables.items():
+        click.echo(f"  {k}: {v}")
+    confirmed = click.confirm("Continue?")
+    if not confirmed:
+        raise click.Abort()
+    instance = app.create_instance(variables)
+    print_progress("Installed!")
+    if not autostart:
         return
-    app.create_instance({"PORT": 3000})
+    instance.start()
 
 
 @click.command()
@@ -48,7 +74,7 @@ def uninstall(ctx, name):
 def start(ctx, name):
     """Starts an app"""
     click.echo(f"Starting {name} ...")
-    inst = RESOLVER.get_instance(name)
+    inst = CORE.get_instance(name)
     inst.start()
 
 
@@ -58,6 +84,18 @@ def start(ctx, name):
 def stop(ctx, name):
     """Stops an app"""
     click.echo(f"Stopping {name} ...")
+    inst = CORE.get_instance(name)
+    inst.stop()
+
+
+@click.command()
+@click.argument("name")
+@click.pass_context
+def restart(ctx, name):
+    """Restarts an app"""
+    click.echo(f"restarting {name} ...")
+    inst = CORE.get_instance(name)
+    inst.restart()
 
 
 @click.command()
@@ -65,21 +103,43 @@ def stop(ctx, name):
 @click.pass_context
 def status(ctx, name):
     """Show the current status of an app"""
-    click.echo(f"Status for {name} ...")
+    inst = CORE.get_instance(name)
+    services = inst.status()
+    if not services:
+        print_error("No services running")
+        return
+    for service in services:
+        click.echo(f'{service["name"]} - {service["status"]}')
 
 
 @click.command()
-def pluck():
-    """Adds a remote application to the local app repo."""
-    click.echo("Not implemented")
+def instances():
+    """Shows all installed apps"""
+    instances = CORE.list_instances()
+    for instance in instances:
+        click.echo(f"{instance.app_name}")
+
+
+@click.command()
+@click.argument("name")
+def uninstall(name):
+    """Uninstall an instance"""
+    print_progress(f"Removing instance {name}")
+    inst = CORE.get_instance(name)
+    if not inst:
+        print_error("Not installed")
+        raise click.Abort()
+    CORE.remove_instance(inst)
+    print_progress(f"Uninstalled")
 
 
 cli.add_command(install)
 cli.add_command(uninstall)
 cli.add_command(start)
 cli.add_command(stop)
+cli.add_command(restart)
 cli.add_command(status)
-cli.add_command(pluck)
+cli.add_command(instances)
 
 
 if __name__ == "__main__":
