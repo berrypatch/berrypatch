@@ -33,7 +33,7 @@ class Resolver:
     """Returns `App` instances by examining local repos."""
 
     def __init__(self):
-        self.apps_dir = os.path.abspath(os.path.expanduser(config.APPS_DIR))
+        self.apps_dir = os.path.abspath(os.path.expanduser(config.FARM_APPS_DIR))
         self.instances_dir = os.path.abspath(os.path.expanduser(config.INSTANCES_DIR))
         self.logger = logging.getLogger(__name__)
 
@@ -327,6 +327,19 @@ class Core:
         instance.stop()
         instance.destroy()
         shutil.rmtree(instance.instance_dir)
+
+    def update(self):
+        os.makedirs(config.FARM_ROOT, exist_ok=True)
+        git_tree = os.path.join(config.FARM_ROOT, ".git")
+        if os.path.exists(git_tree):
+            subprocess.run("git pull", cwd=config.FARM_ROOT, capture_output=False, shell=True)
+        else:
+            subprocess.run(
+                f"git clone {config.FARM_GIT_CLONE_URL} {config.FARM_ROOT}",
+                cwd=config.FARM_ROOT,
+                capture_output=False,
+                shell=True,
+            )
 
     def _get_instance_dir(self, app, instance_id):
         instance_id = self._get_instance_id(instance_id)

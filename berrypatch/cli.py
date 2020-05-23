@@ -3,6 +3,7 @@
 import coloredlogs
 import logging
 import click
+from . import config
 from . import core
 from . import errors
 
@@ -25,6 +26,15 @@ def cli(ctx, debug):
     ctx.ensure_object(dict)
     ctx.obj["DEBUG"] = debug
     coloredlogs.install(level="DEBUG" if debug else "INFO")
+
+
+@click.command()
+@click.pass_context
+def update(ctx):
+    """Pulls latest app definitions"""
+    print_progress(f"Updating sources from {config.FARM_BASE_ADDRESS} ...")
+    CORE.update()
+    print_progress("Done!")
 
 
 @click.command()
@@ -133,6 +143,7 @@ def uninstall(name):
     print_progress(f"Uninstalled")
 
 
+cli.add_command(update)
 cli.add_command(install)
 cli.add_command(uninstall)
 cli.add_command(start)

@@ -3,13 +3,23 @@
 Berrypatch makes it easy to setup, monitor, manage, and re-create your own IOT
 devices.
 
-## Design Overview
+> **🚨Warning:** Berrypatch is completely experimental right now and changing fast. Don't depend on it for anything important!
+
+## Internals & Design Overview
 
 The goal of Berrypatch is to make managing devices like Raspberry Pi as simple, reproducible, and forgettable as possible.
 
+### Why?
+
+Raspberry Pi's are fun little devices. There's a great community of enthusiast tinkerers building apps for them: Airplane trackers, home automation systems, privacy engines, and the list goes on.
+
+The problem: The way to set up and run these services is fragmented. It often involves manually running `apt-get`; chasing down forum posts to write a config; and other tedium. Yet devices and customizations really don't change all that much. _Can't we make this simpler?_
+
+
 ### Goals
 
-* **Run everything in Docker.** Everything we want to run on our IoT devices should run within Docker. There should be no special daemons, additional packages, startup scripts, user and groups, nor permissions needed on our host OS. Service/application authors can leverage Docker registries to distribute "ready to go" builds.
+* **A `homebrew`-like simplicity for distributing and installing services.** Make an install command that _just works_ for a wide variety of applications folks are building for these IoT devices. Support the most common points of configuration and customization.
+* **...running everything in Docker.** Everything we want to run on our IoT devices should run within Docker. There should be no special daemons, additional packages, startup scripts, user and groups, nor permissions or tinkering needing on the host OS. Service/application authors can leverage Docker registries to distribute "ready to go" builds.
 * **Let `docker-compose` manage everything.** Don't reinvent yet another orchestration tool for starting, stopping, and monitoring sets of services. Let `docker-compose` do the heavy lifting, making the runtime familiar and debuggable for advanced users.
 * **Follow "the unix way".** Berrypatch is a low-level tool that should be composable and pluggable into higher-level systems. For example, we could later build a UI or a remote control system atop Berrypatch. 
 
@@ -31,26 +41,37 @@ Here are some of the key concepts used within Berrypatch.
 
 ### Filesystem structure
 
-Berrypatch creates and manages a filesystem structure. An abbreviated example is shown below:
+Berrypatch creates and manages a filesystem structure, by default at `/usr/local/Berrypatch` though this can be overridden by specifying `BERRYPATCH_ROOT` in env.
 
-* `apps/`
+End users should never need to view or manage this tree directly. You can think of this as the private data of the `bp` command, and the place state for installed applications is stored.
+
+An abbreviated example is shown below:
+
+* `sources/`
+  * `github.com/berrypatch/berryfarm`
+    * `apps`
+      * `grafana/`
+        * `berry.json`
+        * `docker-compose.tmpl.yml`
+        * `grafana.conf`
+      * `influxdb/`
+        * `berry.json`
+        * `docker-compose.tmpl.yml`
+      * `...`
   * `local/`
-    * `my-app/`
-      * `berry.json`
-      * `docker-compose.tmpl.yml`
-  * `repo/berryfarm/apps/`
-    * `another-app/`
-      * `berry.json`
-      * `docker-compose.tmpl.yml`
+    * `apps/`
+      * `my-app/`
+        * `berry.json`
+        * `docker-compose.tmpl.yml`
 * `instances/`
   * `my-app-01/`
     * `berry-meta.json`
     * `docker-compose.yml`
     * `appdata/`
 
-The two major data trees are `apps/` and `instances/`.
+The two major data trees are `sources/` and `instances/`.
 
-* **`apps/`** is where Berrypatch looks for and manages App definitions. Berrypatch supports pulling from a centralized app registry (`repo/berryfarm`), and you can also create and install apps locally (`local`).
+* **`sources/`** is where Berrypatch looks for and manages App definitions. Berrypatch supports pulling from a centralized app registry (`github.com/berrypatch/berryfarm`), and developers can also create and install app definitions locally (`local`).
 
 * **`instances/`** is where Berrypatch creates applications. Each folder in here corresponds to an instance, and will have a hydrated `docker-compose.yml` within it, as well as a metadata file with information about the install. While you should not _need_ to, you can step inside any instance directory and run `docker-compose` commands just like you may be used to without Berrypatch.
 
@@ -67,8 +88,6 @@ Variable definitions are objects with the following fields:
 * `type`: The type of the variable value, for basic type check. Options: `string` (default), `boolean`, `number`.
 
 ## Getting Started
-
-> **🚨Warning:** Berrypatch is completely experimental right now. Don't depend on it for anything important.
 
 ### Developer setup
 
