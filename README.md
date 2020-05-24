@@ -3,7 +3,16 @@
 Berrypatch makes it easy to setup, monitor, manage, and re-create your own IOT
 devices.
 
+![render1590349877577](https://user-images.githubusercontent.com/390829/82763930-15f40880-9dd9-11ea-9202-ee895b3cece8.gif)
+
+
 > **🚨Warning:** Berrypatch is completely experimental right now and changing fast. Don't depend on it for anything important!
+
+### Why Berrypatch?
+
+Raspberry Pi's are fun little devices. There's a great community of enthusiast tinkerers building apps for them: Airplane trackers, home automation systems, privacy engines, and the list goes on.
+
+The problem: The way to set up and run these services is fragmented. It often involves manually running `apt-get`; chasing down forum posts to write a config; and other tedium. Yet devices and customizations really don't change all that much. _Can't we make this simpler?_
 
 
 ## Installing Berrypatch
@@ -18,17 +27,48 @@ command into your Raspbian system:
 
 The installer will take care of the next steps.
 
+You can see what applications are available with `bp search`:
+
+```
+$ bp search
+* airconnect
+* grafana
+* influxdb
+* mosquitto
+* telegraf
+```
+
+Install and automaticall launch an application with `bp install`. If the app has configuration options, you'll be prompted to set them.
+
+```
+$ bp install grafana
+---> Installing grafana
+---> Entering configuration for grafana
+
+## PORT
+Description: The main port Grafana will run on. The Grafana HTTP
+service will be exposed on this port.
+Enter value [3000]:
+
+## Configuration Summary
+PORT=3000
+
+Look good to you? [Y/n]:
+Ready to install! Continue? [Y/n]:
+---> Installing grafana
+Pulling grafana ... done
+---> Launching grafana ...
+Creating grafana ... done
+---> Success: grafana installed and launched!
+```
+
+Check on status of all apps with `bp ps`, and use `bp stop` and `bp start` to manage them later. 
+
+See all available commands with `bp --help`, and get help on any command with `bp <command> --help`.
 
 ## Internals & Design Overview
 
 The goal of Berrypatch is to make managing devices like Raspberry Pi as simple, reproducible, and forgettable as possible.
-
-### Why?
-
-Raspberry Pi's are fun little devices. There's a great community of enthusiast tinkerers building apps for them: Airplane trackers, home automation systems, privacy engines, and the list goes on.
-
-The problem: The way to set up and run these services is fragmented. It often involves manually running `apt-get`; chasing down forum posts to write a config; and other tedium. Yet devices and customizations really don't change all that much. _Can't we make this simpler?_
-
 
 ### Goals
 
