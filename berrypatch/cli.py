@@ -3,10 +3,12 @@
 import coloredlogs
 import logging
 import click
+import json
+import os
 from . import config
 from . import core
 from . import errors
-
+from .templates import NEW_APP_COMPOSE_TEMPLATE
 
 CORE = core.Core()
 
@@ -143,6 +145,52 @@ def uninstall(name):
     print_progress(f"Uninstalled")
 
 
+@click.group()
+@click.pass_context
+def dev(ctx):
+    """Commands for Berrypatch developers"""
+    pass
+
+
+@click.command()
+@click.argument("name")
+def mkapp(name):
+    """Create a new skeletal app"""
+    print_progress(f'Creating new app "{name}"')
+    location = click.prompt("Location", default=config.NEW_APP_DIR)
+    app_dir = os.path.join(location, name)
+
+    if os.path.exists(app_dir):
+        print_error("App dir already exists; pick a new name or location and try again")
+        raise click.Abort()
+
+    service_name = click.prompt("Service name", default=name)
+    base_image = click.prompt("Base docker image")
+    description = click.prompt("Description", default=f"The {name} service")
+    ready = click.confirm("Ready to create?")
+
+    if not ready:
+        raise click.Abort()
+
+    print_progress(f'Building app dir "{app_dir}"')
+    os.makedirs(app_dir)
+
+    print_progress("Creating berry.json")
+    data = {
+        "name": name,
+        "description": description,
+        "variables": {},
+    }
+    with open(os.path.join(app_dir, "berry.json"), "w") as fp:
+        fp.write(json.dumps(data, indent=4))
+
+    print_progress("Creating compose template")
+    data = NEW_APP_COMPOSE_TEMPLATE.format(**locals())
+    with open(os.path.join(app_dir, "docker-compose.tmpl.yml"), "w") as fp:
+        fp.write(data)
+    print_progress("Done!")
+
+
 cli.add_command(update)
 cli.add_command(install)
 cli.add_command(uninstall)
@@ -152,6 +200,8 @@ cli.add_command(restart)
 cli.add_command(status)
 cli.add_command(instances)
 
+cli.add_command(dev)
+dev.add_command(mkapp)
 
 if __name__ == "__main__":
     cli()

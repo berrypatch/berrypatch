@@ -38,7 +38,9 @@ class Resolver:
         self.logger = logging.getLogger(__name__)
 
     def iter_apps(self):
+        self.logger.debug(f"Looking for apps in {self.apps_dir}")
         for filename in os.listdir(self.apps_dir):
+            self.logger.debug(f"  ~ test {filename}")
             if filename.startswith("."):
                 continue
             fullpath = os.path.join(self.apps_dir, filename)
@@ -46,6 +48,7 @@ class Resolver:
                 continue
             if not os.path.exists(os.path.join(fullpath, "berry.json")):
                 continue
+            self.logger.debug(f"  + detected app")
             yield App.load(fullpath)
 
     def resolve_app(self, app_name):
