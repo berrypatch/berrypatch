@@ -136,25 +136,50 @@ def restart(ctx, name):
 
 
 @click.command()
-@click.argument("name")
+@click.argument("name", required=False)
 @click.pass_context
-def status(ctx, name):
-    """Show the current status of an app"""
-    inst = CORE.get_instance(name)
-    services = inst.status()
-    if not services:
-        print_error("No services running")
-        return
-    for service in services:
-        click.echo(f'{service["name"]} - {service["status"]}')
+def ps(ctx, name):
+    """Show the current status of all apps or a single app"""
+    if name:
+        inst = CORE.get_instance(name)
+        if not inst:
+            print_error(f"App {name} not installed")
+            raise click.Abort()
+        instances = [inst]
+    else:
+        instances = CORE.list_instances()
+    for inst in instances:
+        click.echo(click.style(inst.app_name, bold=True))
+        services = inst.status()
+        if not services:
+            click.echo(click.style("  [DOWN]", fg="red", bold=True) + " No services running")
+        for service in services:
+            if service["status"] == "running":
+                status = click.style("[UP]", fg="green", bold=True)
+            else:
+                status = click.style("[??]", fg="orange", bold=True)
+            click.echo(f'  {status} {service["name"]} {service["status"]}')
 
 
 @click.command()
-def instances():
+@click.argument("query", required=False)
+def search(query):
+    apps = CORE.list_apps(query=query)
+    if not apps:
+        click.echo("No apps found")
+        return
+    app_names = sorted([app.name for app in apps])
+    for name in app_names:
+        click.echo(f"* {click.style(name, bold=True)}")
+
+
+@click.command()
+def installed():
     """Shows all installed apps"""
     instances = CORE.list_instances()
-    for instance in instances:
-        click.echo(f"{instance.app_name}")
+    app_names = sorted([i.app_name for i in instances])
+    for name in app_names:
+        click.echo(f"* {click.style(name, bold=True)}")
 
 
 @click.command()
@@ -216,14 +241,15 @@ def mkapp(name):
     print_progress("Done!")
 
 
-cli.add_command(update)
 cli.add_command(install)
-cli.add_command(uninstall)
+cli.add_command(installed)
+cli.add_command(ps)
+cli.add_command(restart)
+cli.add_command(search)
 cli.add_command(start)
 cli.add_command(stop)
-cli.add_command(restart)
-cli.add_command(status)
-cli.add_command(instances)
+cli.add_command(uninstall)
+cli.add_command(update)
 
 cli.add_command(dev)
 dev.add_command(mkapp)
