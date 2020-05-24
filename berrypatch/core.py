@@ -124,14 +124,6 @@ class App:
             data_files=data_files,
         )
 
-    def iter_variable_definitions(self):
-        for var in self.variable_definitions:
-            name = var["name"]
-            description = var.get("description", "")
-            default_value = var.get("default", "")
-            validator = lambda v: v
-            yield name, description, default_value, validator
-
     def iter_data_files(self):
         return self.data_files.items()
 

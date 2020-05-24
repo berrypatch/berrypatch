@@ -21,6 +21,23 @@ def print_progress(msg):
     click.echo(click.style("--->", fg="green") + " " + msg)
 
 
+def configure_options(variable_definitions, defaults=None):
+    defaults = defaults or {}
+    result = {}
+    for var in variable_definitions:
+        name = var["name"]
+        description = var.get("description", "")
+        default_value = defaults.get(name, var.get("default", ""))
+        validator = lambda v: v
+
+        click.echo(click.style(f"## {name}", bold=True))
+        descr_prompt = click.style("Description: ", fg="green") + description or "None provided"
+        click.echo(click.wrap_text(descr_prompt))
+        value = click.prompt(click.style("Enter value", fg="green"), default=default_value)
+        result[name] = value
+    return result
+
+
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 @click.pass_context
@@ -52,24 +69,32 @@ def install(ctx, name, autostart):
         raise click.Abort()
 
     variables = {}
-    print_progress(f"Configuring {name} ...")
-    for variable_config in app.iter_variable_definitions():
-        name, description, default_value, validator = variable_config
-        click.echo(f'{name}: {description or "No description"}')
-        value = click.prompt("Enter value", default=default_value)
-        variables[name] = value
+    if not app.variable_definitions:
+        print_progress(f"No configuration required for {name}")
+    else:
+        print_progress(f"Entering configuration for {name}")
+        confirmed = False
+        while not confirmed:
+            click.echo("")
+            variables = configure_options(app.variable_definitions, defaults=variables)
+            click.echo("")
+            click.echo(click.style("## Configuration Summary", bold=True))
+            for k, v in variables.items():
+                click.echo(click.style(k) + "=" + click.style(str(v)))
+            click.echo("")
+            confirmed = click.confirm("Look good to you?", default=True)
 
-    click.echo(f"Ready to install {name}.")
-    for k, v in variables.items():
-        click.echo(f"  {k}: {v}")
-    confirmed = click.confirm("Continue?")
+    confirmed = click.confirm("Ready to install! Continue?", default=True)
     if not confirmed:
         raise click.Abort()
+    print_progress(f"Installing {name}")
     instance = app.create_instance(variables)
-    print_progress("Installed!")
     if not autostart:
+        print_progress("Installed!")
         return
+    print_progress(f"Launching {name} ...")
     instance.start()
+    print_progress(f"Success: {name} installed and launched!")
 
 
 @click.command()
