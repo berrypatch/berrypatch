@@ -5,6 +5,20 @@ devices.
 
 > **🚨Warning:** Berrypatch is completely experimental right now and changing fast. Don't depend on it for anything important!
 
+
+## Installing Berrypatch
+
+For a quick start, run our simple install script by pasting the following
+command into your Raspbian system:
+
+
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/berrypatch/berrypatch/master/install.sh)"
+```
+
+The installer will take care of the next steps.
+
+
 ## Internals & Design Overview
 
 The goal of Berrypatch is to make managing devices like Raspberry Pi as simple, reproducible, and forgettable as possible.
