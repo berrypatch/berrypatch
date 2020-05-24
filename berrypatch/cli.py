@@ -5,9 +5,10 @@ import logging
 import click
 import json
 import os
-from . import config
+from . import config as config_lib
 from . import core
 from . import errors
+from .config import NEW_APP_DIR, FARM_BASE_ADDRESS
 from .templates import NEW_APP_COMPOSE_TEMPLATE
 
 CORE = core.Core()
@@ -207,7 +208,7 @@ def dev(ctx):
 def mkapp(name):
     """Create a new skeletal app"""
     print_progress(f'Creating new app "{name}"')
-    location = click.prompt("Location", default=config.NEW_APP_DIR)
+    location = click.prompt("Location", default=NEW_APP_DIR)
     app_dir = os.path.join(location, name)
 
     if os.path.exists(app_dir):
@@ -241,6 +242,23 @@ def mkapp(name):
     print_progress("Done!")
 
 
+@click.group()
+@click.pass_context
+def config(ctx):
+    """View configuration info"""
+    pass
+
+
+@click.command()
+@click.argument("name")
+def show(name):
+    """Show a config value."""
+    val = getattr(config_lib, name.upper(), None)
+    if not val:
+        raise click.Abort(f"No config value named {name}")
+    click.echo(val)
+
+
 cli.add_command(install)
 cli.add_command(installed)
 cli.add_command(ps)
@@ -253,6 +271,9 @@ cli.add_command(update)
 
 cli.add_command(dev)
 dev.add_command(mkapp)
+
+cli.add_command(config)
+config.add_command(show)
 
 if __name__ == "__main__":
     cli()

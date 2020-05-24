@@ -38,7 +38,7 @@ $ bp search
 * telegraf
 ```
 
-Install and automaticall launch an application with `bp install`. If the app has configuration options, you'll be prompted to set them.
+Install and automatically launch an application with `bp install`. If the app has configuration options, you'll be prompted to set them.
 
 ```
 $ bp install grafana
@@ -65,6 +65,28 @@ Creating grafana ... done
 Check on status of all apps with `bp ps`, and use `bp stop` and `bp start` to manage them later. 
 
 See all available commands with `bp --help`, and get help on any command with `bp <command> --help`.
+
+### What is it doing?
+
+Ultimately what Berrypatch does is create and manage a `docker-compose.yml` file, and wraps the `docker-compose` program through it with a simplified interface.
+
+All Berrypatch state and outputs are stored in a place called `BERRYPATCH_ROOT`. You can use `bp` to find that directory name:
+
+```
+$ bp config show BERRYPATCH_ROOT        
+/usr/local/Berrypatch
+```
+
+See what Berrypatch created for the `grafana` app:
+```
+$ ls /usr/local/Berrypatch/instances/grafana
+appdata
+berry-meta.json
+docker-compose.yml
+```
+
+See what Berrypatch is doing by adding `--debug` to any command, eg `bp --debug install grafana`.
+
 
 ## Internals & Design Overview
 
