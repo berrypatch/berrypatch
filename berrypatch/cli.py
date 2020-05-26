@@ -165,13 +165,15 @@ def ps(ctx, name):
 @click.command()
 @click.argument("query", required=False)
 def search(query):
+    """List package(s) matching a name or query"""
     apps = CORE.list_apps(query=query)
     if not apps:
         click.echo("No apps found")
         return
-    app_names = sorted([app.name for app in apps])
-    for name in app_names:
+    app_names = sorted([(app.name, app) for app in apps])
+    for name, app in app_names:
         click.echo(f"* {click.style(name, bold=True)}")
+        click.echo(f"  {click.style(app.description, dim=True)}")
 
 
 @click.command()
