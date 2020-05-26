@@ -232,7 +232,7 @@ def mkapp(name):
     data = {
         "name": name,
         "description": description,
-        "variables": {},
+        "variables": [],
     }
     with open(os.path.join(app_dir, "berry.json"), "w") as fp:
         fp.write(json.dumps(data, indent=4))

@@ -6,6 +6,7 @@ import json
 import shutil
 
 from . import config
+from . import meta
 from .errors import FileNotFound, AppNotFound
 import jinja2
 from jinja2 import Template
@@ -90,6 +91,13 @@ class App:
         self.variable_definitions = variable_definitions
         self.data_files = data_files
 
+    def to_berry_json(self):
+        return {
+            "name": self.name,
+            "description": self.description,
+            "variables": self.variable_definitions,
+        }
+
     @classmethod
     def load(cls, base_dir):
         base_dir = os.path.abspath(os.path.expanduser(base_dir))
@@ -145,9 +153,8 @@ class AppInstance:
 
     @classmethod
     def load(cls, instance_dir):
-        berry_meta_file = os.path.join(instance_dir, "berry-meta.json")
-        with open(berry_meta_file, "r") as fp:
-            berry_meta = json.loads(fp.read())
+        berry_meta_file = os.path.join(instance_dir, meta.META_FILENAME)
+        berry_meta = meta.load_metadata(berry_meta_file)
         return cls(berry_meta["name"], instance_dir, berry_meta["variables"])
 
     @classmethod
@@ -189,13 +196,8 @@ class AppInstance:
             with open(dest_filename, "w") as fp:
                 fp.write(contents)
 
-        metadata = {
-            "name": app.name,
-            "variables": variables,
-            "data_files": app.data_files,
-        }
-
-        berry_meta_file = os.path.join(instance_dir, "berry-meta.json")
+        metadata = meta.create_metadata(app, variables)
+        berry_meta_file = os.path.join(instance_dir, meta.META_FILENAME)
         with open(berry_meta_file, "w") as fp:
             logger.debug(f"Writing meta file {berry_meta_file}")
             fp.write(json.dumps(metadata, indent=2))
