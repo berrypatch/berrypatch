@@ -12,7 +12,7 @@ from . import errors
 from .config import NEW_APP_DIR, FARM_BASE_ADDRESS
 from .templates import NEW_APP_COMPOSE_TEMPLATE
 
-VERSION = pkg_resources.require('berrypatch')[0].version
+VERSION = pkg_resources.require("berrypatch")[0].version
 
 CORE = core.Core()
 
@@ -51,7 +51,7 @@ def cli(ctx, debug):
     coloredlogs.install(level="DEBUG" if debug else "INFO")
 
 
-@click.command()
+@cli.command()
 @click.pass_context
 def update(ctx):
     """Pulls latest app definitions"""
@@ -60,7 +60,7 @@ def update(ctx):
     print_progress("Done!")
 
 
-@click.command()
+@cli.command()
 @click.argument("name")
 @click.option("--autostart/--no-autostart", default=True)
 @click.pass_context
@@ -101,7 +101,7 @@ def install(ctx, name, autostart):
     print_progress(f"Success: {name} installed and launched!")
 
 
-@click.command()
+@cli.command()
 @click.argument("name")
 @click.pass_context
 def uninstall(ctx, name):
@@ -109,7 +109,7 @@ def uninstall(ctx, name):
     click.echo(f"Uninstalling {name} ...")
 
 
-@click.command()
+@cli.command()
 @click.argument("name")
 @click.pass_context
 def start(ctx, name):
@@ -119,7 +119,7 @@ def start(ctx, name):
     inst.start()
 
 
-@click.command()
+@cli.command()
 @click.argument("name")
 @click.pass_context
 def stop(ctx, name):
@@ -129,7 +129,7 @@ def stop(ctx, name):
     inst.stop()
 
 
-@click.command()
+@cli.command()
 @click.argument("name")
 @click.pass_context
 def restart(ctx, name):
@@ -139,7 +139,7 @@ def restart(ctx, name):
     inst.restart()
 
 
-@click.command()
+@cli.command()
 @click.argument("name", required=False)
 @click.pass_context
 def ps(ctx, name):
@@ -165,7 +165,7 @@ def ps(ctx, name):
             click.echo(f'  {status} {service["name"]} {service["status"]}')
 
 
-@click.command()
+@cli.command()
 @click.argument("query", required=False)
 def search(query):
     """List package(s) matching a name or query"""
@@ -179,7 +179,7 @@ def search(query):
         click.echo(f"  {click.style(app.description, dim=True)}")
 
 
-@click.command()
+@cli.command()
 def installed():
     """Shows all installed apps"""
     instances = CORE.list_instances()
@@ -188,7 +188,7 @@ def installed():
         click.echo(f"* {click.style(name, bold=True)}")
 
 
-@click.command()
+@cli.command()
 @click.argument("name")
 def uninstall(name):
     """Uninstall an instance"""
@@ -201,20 +201,20 @@ def uninstall(name):
     print_progress(f"Uninstalled")
 
 
-@click.command()
+@cli.command()
 def version():
     """Prints the `bp` tool's version"""
     click.echo(VERSION)
 
 
-@click.group()
+@cli.group()
 @click.pass_context
 def dev(ctx):
     """Commands for Berrypatch developers"""
     pass
 
 
-@click.command()
+@dev.command()
 @click.argument("name")
 def mkapp(name):
     """Create a new skeletal app"""
@@ -253,14 +253,14 @@ def mkapp(name):
     print_progress("Done!")
 
 
-@click.group()
+@cli.group()
 @click.pass_context
 def config(ctx):
     """View configuration info"""
     pass
 
 
-@click.command()
+@config.command()
 @click.argument("name")
 def show(name):
     """Show a config value."""
@@ -269,23 +269,6 @@ def show(name):
         raise click.Abort(f"No config value named {name}")
     click.echo(val)
 
-
-cli.add_command(install)
-cli.add_command(installed)
-cli.add_command(ps)
-cli.add_command(restart)
-cli.add_command(search)
-cli.add_command(start)
-cli.add_command(stop)
-cli.add_command(uninstall)
-cli.add_command(update)
-cli.add_command(version)
-
-cli.add_command(dev)
-dev.add_command(mkapp)
-
-cli.add_command(config)
-config.add_command(show)
 
 if __name__ == "__main__":
     cli()
