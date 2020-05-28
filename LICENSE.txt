@@ -1,4 +1,4 @@
-Copyright 2003-2020 The Kegbot Project Contributors <info@kegbot.org>
+Copyright 2020 The Berrypatch Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
