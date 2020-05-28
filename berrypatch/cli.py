@@ -5,11 +5,14 @@ import logging
 import click
 import json
 import os
+import pkg_resources
 from . import config as config_lib
 from . import core
 from . import errors
 from .config import NEW_APP_DIR, FARM_BASE_ADDRESS
 from .templates import NEW_APP_COMPOSE_TEMPLATE
+
+VERSION = pkg_resources.require('berrypatch')[0].version
 
 CORE = core.Core()
 
@@ -198,6 +201,12 @@ def uninstall(name):
     print_progress(f"Uninstalled")
 
 
+@click.command()
+def version():
+    """Prints the `bp` tool's version"""
+    click.echo(VERSION)
+
+
 @click.group()
 @click.pass_context
 def dev(ctx):
@@ -270,6 +279,7 @@ cli.add_command(start)
 cli.add_command(stop)
 cli.add_command(uninstall)
 cli.add_command(update)
+cli.add_command(version)
 
 cli.add_command(dev)
 dev.add_command(mkapp)

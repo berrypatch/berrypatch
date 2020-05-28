@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3eaf985fab7574a3ff9935ed91a3fda2a347fca540213f2170df24eeea03451b"
+            "sha256": "39d6f57900baa608150eb4570e139f9d96a881bea351accb0119c7a342efda52"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -89,10 +89,6 @@
                 "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"
             ],
             "version": "==19.3.0"
-        },
-        "berrypatch": {
-            "editable": true,
-            "path": "."
         },
         "black": {
             "hashes": [

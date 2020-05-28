@@ -171,8 +171,8 @@ Clone the repo, and use Pipenv to create a local install:
 
 ```
 $ cd berrypatch/
-$ pipenv install
+$ pipenv install --dev && pipenv run python setup.py develop
 $ pipenv shell
-(berrypatch) $ berrypatch version
-🍓Berrypatch v0.0.1
+(berrypatch) $ bp version
+0.1.0
 ```

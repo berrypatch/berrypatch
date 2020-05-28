@@ -6,7 +6,6 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 black = "*"
-berrypatch = {editable = true,path = "."}
 
 [packages]
 jinja2 = "*"
