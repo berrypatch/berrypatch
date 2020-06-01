@@ -70,7 +70,7 @@ def cli(ctx, debug):
 @wrap_core
 def update(ctx):
     """Pulls latest app definitions"""
-    print_progress(f"Updating sources from {config.FARM_BASE_ADDRESS} ...")
+    print_progress(f"Updating sources from {FARM_BASE_ADDRESS} ...")
     CORE.update()
     print_progress("Done!")
 
