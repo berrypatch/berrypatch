@@ -7,7 +7,7 @@ import shutil
 
 from . import config
 from . import meta
-from .errors import FileNotFound, AppNotFound
+from .errors import FileNotFound, AppNotFound, CommandFailed, InstanceNotFound
 import jinja2
 from jinja2 import Template
 
@@ -256,10 +256,13 @@ class AppInstance:
             )
         return ret
 
-    def _run_compose(self, *args, capture=False):
-        return run_compose_command(
+    def _run_compose(self, *args, capture=False, raise_on_fail=True):
+        result = run_compose_command(
             self.compose_project_name, self.compose_file, *args, capture=capture,
         )
+        if raise_on_fail and result.returncode != 0:
+            raise CommandFailed(result)
+        return result
 
 
 class Core:
@@ -308,7 +311,7 @@ class Core:
         instances = [AppInstance.load(base_dir) for base_dir in items]
         return instances
 
-    def get_instance(self, app_name, instance_id=None):
+    def get_instance(self, app_name, instance_id=None, raise_if_missing=True):
         """Gets a specific app instance, or `None` if not found.
 
         If `instance_id` is specified, look for this specific instance. If unspecified,
@@ -317,6 +320,8 @@ class Core:
         for instance in instances:
             if instance.app_name == app_name:
                 return instance
+        if raise_if_missing:
+            raise InstanceNotFound(f"App {app_name} not installed")
         return None
 
     def remove_instance(self, instance):

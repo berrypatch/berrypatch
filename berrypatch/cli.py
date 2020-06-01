@@ -5,6 +5,7 @@ import logging
 import click
 import json
 import os
+import functools
 import pkg_resources
 from . import config as config_lib
 from . import core
@@ -42,6 +43,19 @@ def configure_options(variable_definitions, defaults=None):
     return result
 
 
+def wrap_core(fn):
+    """Decorator that translates core errors to CLI errors."""
+
+    @functools.wraps(fn)
+    def wrapped(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except errors.BerryError as e:
+            raise click.ClickException(str(e))
+
+    return wrapped
+
+
 @click.group()
 @click.option("--debug/--no-debug", default=False)
 @click.pass_context
@@ -53,6 +67,7 @@ def cli(ctx, debug):
 
 @cli.command()
 @click.pass_context
+@wrap_core
 def update(ctx):
     """Pulls latest app definitions"""
     print_progress(f"Updating sources from {config.FARM_BASE_ADDRESS} ...")
@@ -64,6 +79,7 @@ def update(ctx):
 @click.argument("name")
 @click.option("--autostart/--no-autostart", default=True)
 @click.pass_context
+@wrap_core
 def install(ctx, name, autostart):
     """Installs an app"""
     app = CORE.get_app(name)
@@ -104,14 +120,20 @@ def install(ctx, name, autostart):
 @cli.command()
 @click.argument("name")
 @click.pass_context
+@wrap_core
 def uninstall(ctx, name):
     """Uninstalls an app"""
-    click.echo(f"Uninstalling {name} ...")
+    inst = CORE.get_instance(name)
+    if not inst:
+        print_error(f"App {name} not installed")
+        raise click.Abort()
+    CORE.remove_instance(inst)
 
 
 @cli.command()
 @click.argument("name")
 @click.pass_context
+@wrap_core
 def start(ctx, name):
     """Starts an app"""
     click.echo(f"Starting {name} ...")
@@ -122,6 +144,7 @@ def start(ctx, name):
 @cli.command()
 @click.argument("name")
 @click.pass_context
+@wrap_core
 def stop(ctx, name):
     """Stops an app"""
     click.echo(f"Stopping {name} ...")
@@ -132,6 +155,7 @@ def stop(ctx, name):
 @cli.command()
 @click.argument("name")
 @click.pass_context
+@wrap_core
 def restart(ctx, name):
     """Restarts an app"""
     click.echo(f"restarting {name} ...")
@@ -142,6 +166,7 @@ def restart(ctx, name):
 @cli.command()
 @click.argument("name", required=False)
 @click.pass_context
+@wrap_core
 def ps(ctx, name):
     """Show the current status of all apps or a single app"""
     if name:
@@ -167,6 +192,7 @@ def ps(ctx, name):
 
 @cli.command()
 @click.argument("query", required=False)
+@wrap_core
 def search(query):
     """List package(s) matching a name or query"""
     apps = CORE.list_apps(query=query)
@@ -180,6 +206,7 @@ def search(query):
 
 
 @cli.command()
+@wrap_core
 def installed():
     """Shows all installed apps"""
     instances = CORE.list_instances()
@@ -190,6 +217,7 @@ def installed():
 
 @cli.command()
 @click.argument("name")
+@wrap_core
 def uninstall(name):
     """Uninstall an instance"""
     print_progress(f"Removing instance {name}")
