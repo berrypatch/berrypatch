@@ -1,7 +1,7 @@
 # Berrypatch
 
 Berrypatch makes it easy to setup, monitor, manage, and re-create your own IOT
-devices.
+devices. [Homebrew](https://brew.sh/)-like simplicity for installs and updates; docker-compose under the hood.
 
 ![render1590349877577](https://user-images.githubusercontent.com/390829/82763930-15f40880-9dd9-11ea-9202-ee895b3cece8.gif)
 
