@@ -39,8 +39,12 @@ ensure_python() {
     if ! [ -x "$(command -v python3)" ]; then
         log "Python not installed, installing ..."
         sudo apt-get install -y libffi-dev libssl-dev
-        sudo apt-get install -y python3 python3-pip python3-venv
-        sudo apt-get remove python-configparser || true
+        sudo apt-get install -y python3 python3-pip
+    fi
+
+    if ! [ -x "$(command -v pyvenv)" ]; then
+        log "python3-venv not installed, installing ..."
+        sudo apt-get install -y python3-venv
     fi
 
     python_version=`python3 --version 2>&1`
@@ -86,6 +90,7 @@ ensure_docker_compose() {
 }
 
 ensure_all_dependencies() {
+    sudo apt-get update
     ensure_docker
     ensure_python
     ensure_pipx
