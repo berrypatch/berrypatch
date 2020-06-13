@@ -80,7 +80,7 @@ def update(ctx):
 @click.option("--autostart/--no-autostart", default=True)
 @click.pass_context
 @wrap_core
-def install(ctx, name, autostart):
+def install(ctx, name, autostart, default_variables=None):
     """Installs an app"""
     app = CORE.get_app(name)
     print_progress(f"Installing {name}")
@@ -88,7 +88,16 @@ def install(ctx, name, autostart):
         print_error(f'An app named "{name}" was not found')
         raise click.Abort()
 
+    is_reinstall = default_variables is not None
+    inst = CORE.get_instance(name)
+    if inst and not is_reinstall:
+        print_error(f"App {name} is already installed; use `bp reinstall {name}` to re-install")
+        raise click.Abort()
+
     variables = {}
+    if default_variables:
+        variables.update(default_variables)
+
     if not app.variable_definitions:
         print_progress(f"No configuration required for {name}")
     else:
@@ -113,8 +122,32 @@ def install(ctx, name, autostart):
         print_progress("Installed!")
         return
     print_progress(f"Launching {name} ...")
-    instance.start()
-    print_progress(f"Success: {name} installed and launched!")
+    if is_reinstall:
+        instance.start()
+        print_progress(f"Success: {name} installed and launched!")
+    else:
+        instance.restart()
+        print_progress(f"Success: {name} reinstalled!")
+
+
+@cli.command()
+@click.argument("name")
+@click.pass_context
+@wrap_core
+def reinstall(ctx, name):
+    """Reinstalls an app"""
+    app = CORE.get_app(name)
+    if not app:
+        print_error(f'An app named "{name}" was not found')
+        raise click.Abort()
+
+    print_progress(f"Re-installing {name}")
+    inst = CORE.get_instance(name)
+    if not inst:
+        print_error(f"App {name} not installed")
+        raise click.Abort()
+
+    ctx.invoke(install, name=name, autostart=True, default_variables=inst.variables)
 
 
 @cli.command()
