@@ -16,6 +16,7 @@ from .templates import NEW_APP_COMPOSE_TEMPLATE
 VERSION = pkg_resources.require("berrypatch")[0].version
 
 CORE = core.Core()
+CORE.bootstrap()
 
 
 def print_error(msg):
@@ -89,7 +90,7 @@ def install(ctx, name, autostart, default_variables=None):
         raise click.Abort()
 
     is_reinstall = default_variables is not None
-    inst = CORE.get_instance(name)
+    inst = CORE.get_instance(name, raise_if_missing=False)
     if inst and not is_reinstall:
         print_error(f"App {name} is already installed; use `bp reinstall {name}` to re-install")
         raise click.Abort()
@@ -126,7 +127,8 @@ def install(ctx, name, autostart, default_variables=None):
         instance.start()
         print_progress(f"Success: {name} installed and launched!")
     else:
-        instance.restart()
+        instance.stop()
+        instance.start()
         print_progress(f"Success: {name} reinstalled!")
 
 

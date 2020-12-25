@@ -38,6 +38,11 @@ class Resolver:
         self.instances_dir = os.path.abspath(os.path.expanduser(config.INSTANCES_DIR))
         self.logger = logging.getLogger(__name__)
 
+    def bootstrap(self):
+        if not os.path.exists(self.instances_dir):
+            logger.info(f'First launch, creating instances dir: {self.instances_dir} ...')
+            os.makedirs(self.instances_dir)
+
     def iter_apps(self):
         self.logger.debug(f"Looking for apps in {self.apps_dir}")
         for filename in os.listdir(self.apps_dir):
@@ -269,6 +274,11 @@ class Core:
     def __init__(self):
         self.resolver = Resolver()
         self.instances_dir = config.INSTANCES_DIR
+
+    def bootstrap(self):
+        self.resolver.bootstrap()
+        if not os.path.exists(config.FARM_ROOT):
+            self.update()
 
     def list_apps(self, query=None):
         """List all apps the system knows how to install.
