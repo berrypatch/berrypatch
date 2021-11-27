@@ -221,7 +221,7 @@ def ps(ctx, name):
             if service["status"] == "running":
                 status = click.style("[UP]", fg="green", bold=True)
             else:
-                status = click.style("[??]", fg="orange", bold=True)
+                status = click.style("[??]", fg="yellow", bold=True)
             click.echo(f'  {status} {service["name"]} {service["status"]}')
 
 
