@@ -20,6 +20,7 @@ ensure_docker() {
         log "Docker not installed, installing ..."
         curl -sSL https://get.docker.com | sh
         sudo usermod -aG docker $USER
+        newgrp docker
     fi
 
     docker_version=`docker --version`
@@ -75,10 +76,9 @@ ensure_git() {
 
 ensure_docker_compose() {
     log "Checking for docker-compose ..."
-    docker_compose_status=`which docker-compose`
-    if [ $? -ne 0 ]; then
+    if ! [ -x "$(command -v docker-compose)" ]; then
         log "docker-compose not installed, installing ..."
-        sudo pip3 install docker-compose
+        sudo apt-get install -y docker-compose
     fi
 
     docker_compose=`docker-compose --version`
